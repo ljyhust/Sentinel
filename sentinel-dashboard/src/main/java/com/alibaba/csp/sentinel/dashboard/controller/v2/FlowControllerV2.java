@@ -54,15 +54,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class FlowControllerV2 {
 
     private final Logger logger = LoggerFactory.getLogger(FlowControllerV2.class);
-
+    
+    /**
+     * 本地缓存规则store
+     */
     @Autowired
     private InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository;
-
+    
+    /**
+     * pull and push rule to 第三方组件
+     */
     @Autowired
-    @Qualifier("flowRuleDefaultProvider")
+    @Qualifier("flowRuleNacosProvider")
     private DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider;
     @Autowired
-    @Qualifier("flowRuleDefaultPublisher")
+    @Qualifier("flowRuleNacosPublisher")
     private DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher;
 
     @GetMapping("/rules")
