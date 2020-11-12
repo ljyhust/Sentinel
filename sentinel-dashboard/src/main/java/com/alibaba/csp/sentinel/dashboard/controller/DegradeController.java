@@ -22,6 +22,7 @@ import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
 import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
+import com.alibaba.csp.sentinel.dashboard.rule.nacos.DelegateRuleNacosStore;
 import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.util.StringUtil;
 
@@ -48,8 +49,11 @@ public class DegradeController {
 
     @Autowired
     private InMemDegradeRuleStore repository;
+    /*@Autowired
+    private SentinelApiClient sentinelApiClient;*/
+    
     @Autowired
-    private SentinelApiClient sentinelApiClient;
+    private DelegateRuleNacosStore delegateRuleNacosStore;
 
     @ResponseBody
     @RequestMapping("/rules.json")
@@ -66,7 +70,8 @@ public class DegradeController {
             return Result.ofFail(-1, "port can't be null");
         }
         try {
-            List<DegradeRuleEntity> rules = sentinelApiClient.fetchDegradeRuleOfMachine(app, ip, port);
+            //List<DegradeRuleEntity> rules = sentinelApiClient.fetchDegradeRuleOfMachine(app, ip, port);
+            List<DegradeRuleEntity> rules = delegateRuleNacosStore.getRules(app, DegradeRuleEntity.class);
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
@@ -209,6 +214,13 @@ public class DegradeController {
 
     private boolean publishRules(String app, String ip, Integer port) {
         List<DegradeRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
-        return sentinelApiClient.setDegradeRuleOfMachine(app, ip, port, rules);
+        //return sentinelApiClient.setDegradeRuleOfMachine(app, ip, port, rules);
+        try {
+            delegateRuleNacosStore.publish(app, rules, DegradeRuleEntity.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

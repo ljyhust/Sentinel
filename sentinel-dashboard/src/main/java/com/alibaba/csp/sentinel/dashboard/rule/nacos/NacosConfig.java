@@ -41,16 +41,6 @@ public class NacosConfig {
     private String nacosNamespace;
 
     @Bean
-    public Converter<List<FlowRuleEntity>, String> flowRuleEntityEncoder() {
-        return JSON::toJSONString;
-    }
-
-    @Bean
-    public Converter<String, List<FlowRuleEntity>> flowRuleEntityDecoder() {
-        return s -> JSON.parseArray(s, FlowRuleEntity.class);
-    }
-
-    @Bean
     public NacosConfigCustomService nacosConfigService() throws Exception {
         Properties properties = new Properties();
         properties.setProperty("serverAddr", nacosAddress);
